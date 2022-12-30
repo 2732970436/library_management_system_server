@@ -1,6 +1,7 @@
 package com.yzx.server.filter;
 
-import com.yzx.server.exception.TokenAuthExpiredException;
+import com.yzx.server.exception.BusinessException;
+import com.yzx.server.exception.Code;
 import com.yzx.server.utils.TokenUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.util.Map;
 
 @Slf4j
@@ -24,27 +26,28 @@ public class AuthHandlerInterceptor implements HandlerInterceptor {
   private Long yangToken;
   @Value("${token.oldToken}")
   private Long oldToken;
+
   /**
    * 权限认证的拦截操作.
    */
   @Override
   public boolean preHandle(HttpServletRequest req, HttpServletResponse res, Object object) throws Exception {
-    log.info(req.getRequestURI()+"=======进入拦截器========");
+    log.info(req.getRequestURI() + "=======进入拦截器========");
     // 如果不是映射到方法直接通过,可以访问资源.
     if (!(object instanceof HandlerMethod)) {
-      System.out.println("not to function, pass");
       return true;
     }
     //为空就返回错误
     String token = req.getHeader("token");
-    System.out.println(token);
     if (null == token || "".equals(token.trim())) {
-      return false;
+      log.info("path: " + req.getContextPath()  + ";   ip:  " + req.getRemoteAddr() + ":" + req.getRemoteHost() +  "'s token is invalid;");
+      throw new BusinessException(Code.BUSINESS_TOKEN_ERROR, "token无效");
     }
-    log.info("==============token:" + token);
     Map<String, String> map = tokenUtil.parseToken(token);
     String account = map.get("account");
     String role = map.get("role");
+    String id = map.get("id");
+    log.info(account + "(" + role + ") is login");
     long timeOfUse = System.currentTimeMillis() - Long.parseLong(map.get("timeStamp"));
     //1.判断 token 是否过期
     //年轻 token
@@ -53,18 +56,28 @@ public class AuthHandlerInterceptor implements HandlerInterceptor {
     }
     //老年 token 就刷新 token
     else if (timeOfUse >= yangToken && timeOfUse < oldToken) {
-      res.setHeader("token",tokenUtil.getToken(account,role));
+      res.setHeader("token", tokenUtil.getToken(account, role,Long.parseLong(id)));
     }
     //过期 token 就返回 token 无效.
     else {
-      throw new TokenAuthExpiredException();
+      throw new BusinessException(Code.BUSINESS_TOKEN_ERROR, "请重新登录");
     }
-    //2.角色匹配.
-    if ("user".equals(role)) {
-      return true;
-    }
-    return "admin".equals(role);
-  }
 
+    HttpSession session =  req.getSession();
+    session.setAttribute("role", "0".equals(role) ? 0 : 1 );
+    session.setAttribute("account", account);
+    session.setAttribute("userId",Long.parseLong(id));
+    //2.角色匹配.
+//    String url = req.getRequestURI();
+//    String pattern = "^/library/book*";
+//    String method = req.getMethod();
+//    if (Pattern.matches(pattern, url)) {
+//      if (Objects.equals(role, "0")) {
+//        return
+//      }
+//    }
+
+    return true;
+  }
 }
 

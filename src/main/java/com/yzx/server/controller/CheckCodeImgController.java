@@ -16,6 +16,7 @@ import java.io.OutputStream;
 public class CheckCodeImgController extends BaseController {
   @GetMapping
   public void getImg() {
+    System.out.println(env);
     try (OutputStream imgout = res.getOutputStream();) {
       String verify_code = CheckCodeUtil.outputVerifyImage(100,32,imgout,3);
       session.setAttribute("code",verify_code);

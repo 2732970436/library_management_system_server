@@ -18,6 +18,6 @@ public class AuthWebMvcConfigurer implements WebMvcConfigurer {
   public void addInterceptors(InterceptorRegistry registry) {
     registry.addInterceptor(authHandlerInterceptor)
         .addPathPatterns("/**")
-        .excludePathPatterns("/library/api/**","/page/**");
+        .excludePathPatterns("/library/api/**");
   }
 }

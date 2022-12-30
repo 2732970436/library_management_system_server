@@ -18,12 +18,13 @@ public class TokenUtil {
   /**
    * 加密token.
    */
-  public String getToken(String account, String role) {
+  public String getToken(String account, String role, Long id) {
     //这个是放到负载payLoad 里面,魔法值可以使用常量类进行封装.
     return JWT
         .create()
         .withClaim("account" ,account)
         .withClaim("role", role)
+        .withClaim("userId", id.toString())
         .withClaim("timeStamp", System.currentTimeMillis())
         .sign(Algorithm.HMAC256(privateKey));
   }
@@ -43,9 +44,11 @@ public class TokenUtil {
         .build().verify(token);
     Claim account = decodedjwt.getClaim("account");
     Claim role = decodedjwt.getClaim("role");
+    Claim id = decodedjwt.getClaim("userId");
     Claim timeStamp = decodedjwt.getClaim("timeStamp");
     map.put("account", account.asString());
     map.put("role", role.asString());
+    map.put("id", id.asString());
     map.put("timeStamp", timeStamp.asLong().toString());
     return map;
   }
