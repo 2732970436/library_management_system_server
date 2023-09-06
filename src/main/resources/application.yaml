@@ -1,9 +1,12 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://124.222.251.5:27150/library
+    # 数据库连接地址 格式为jdbc:mysql://主机:端口/数据库名
+    url: jdbc:mysql://127.0.0.1:3306/salary
+    # 数据库账号
     username: root
-    password: Loveyou1314520.
+    # 数据库密码
+    password: 123456
     type: com.alibaba.druid.pool.DruidDataSource
 
 # token
@@ -24,5 +27,5 @@ mybatis-plus:
       logic-not-delete-value: 0
       # 逻辑删除字面值：设置为空是为了解决表中某些唯一性约束和逻辑删除之间的冲突
       logic-delete-value: "NULL"
-  mapper-locations: classpath:com/yzx/server/dao/*.xml
-  type-aliases-package: com.yzx.server.domain
+  mapper-locations: classpath:com/zx/server/dao/*.xml
+  type-aliases-package: com.zx.server.domain
